@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 def build_features(df, prediction_date):
 
@@ -23,8 +22,6 @@ def build_features(df, prediction_date):
     final_df = pd.concat([feature_recency, feature_orders, feature_spent, avg_order, purchased_months], axis=1)
 
     return final_df
-
-
 
 
 def build_target(df, prediction_date, days=30):
