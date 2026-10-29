@@ -1,1 +1,5 @@
-__pycache____pycache__/
+__pycache__/
+*.py[cod]
+
+# Trained models
+*.joblib
