@@ -1,5 +1,5 @@
-from src.modeling import build_features, build_target
-from src.features import train, predict
+from src.features import build_features, build_target
+from src.modeling import train, predict
 from sklearn.metrics import roc_auc_score
 import joblib
 import pandas as pd
@@ -26,13 +26,13 @@ def main():
 
     train_df = all_df[all_df['snapshot_date'] < '2011-09-01']  
     val_df = all_df[(all_df['snapshot_date'] >= '2011-09-01') & 
-                    (all_df['snapshot_date'] < '2011-10-01')]      
+                    (all_df['snapshot_date'] < '2011-11-01')]      
     
     
     model = train(train_df)
     
     label, prob = predict(model, val_df)
-    print(roc_auc_score(val_df["target"], prob))    
+    print(roc_auc_score(val_df["target"], prob))
 
     joblib.dump(model, "model.joblib")
 
