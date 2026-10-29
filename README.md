@@ -154,7 +154,7 @@ src/
   features.py   builds customer features and the target for a snapshot date
   modeling.py   FEATURES, THRESHOLD, create_model, train, predict
   train.py      runs the full pipeline and saves model.joblib
-notebooks1/
+notebook/
   modeling.ipynb   exploration and model comparison
 data/
   Online Retail.xlsx
