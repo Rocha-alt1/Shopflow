@@ -33,7 +33,7 @@ app = FastAPI(lifespan=lifespan)
 def predict_customer(features: CustomerFeatures, request: Request):
     df = pd.DataFrame([features.model_dump()])
     label, prob = predict(request.app.state.model, df)
-    return {'label': int(label[0]), 'prob': round(float(prob[0]), 3)}
+    return {'label': int(label[0]), 'prob': float(prob[0])}
 
 @app.get("/health")
 def health():
