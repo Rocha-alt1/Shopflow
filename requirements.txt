@@ -1,6 +1,8 @@
 pandas==3.0.2
+fastapi==0.141.1
 scikit-learn==1.8.0
 joblib==1.5.3
 openpyxl==3.1.5
 pytest==9.2.0
 httpx==0.28.1
+uvicorn==0.53.0
