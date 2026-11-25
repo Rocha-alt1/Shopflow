@@ -26,9 +26,9 @@ def test_health(client):
 def test_predict(client):
     customer = {
         "recency": 10,
-        "total_orders": 5,
+        "total_orders": 4,
         "total_spent": 1794.24,
-        "avg_order": 449.31,
+        "avg_order": 448.56,
         "purchased_months": 4
     }
 
@@ -38,28 +38,38 @@ def test_predict(client):
 
 
 
-def test_predict_invalid(client):
+def test_predict_missing(client):
     customer1 = {
         "recency": 10,
-        "total_orders": 5,
+        "total_orders": 4,
         "total_spent": 1794.24,
-        "avg_order": 449.31
-    }
-
-    customer2 = {
-        "recency": 10,
-        "total_orders": 5,
-        "total_spent": 1794.24,
-        "avg_order": 449.31,
-        "purchased_months": -40
+        "avg_order": 448.56
     }
 
     response = client.post("/predict", json=customer1)
     assert response.status_code == 422
+    
+    result = response.json()
+    assert result['detail'][0]['loc'][1] == 'purchased_months'
+    assert result['detail'][0]['type'] == 'missing'
+
+
+
+def test_predict_negative(client):
+    customer2 = {
+        "recency": 10,
+        "total_orders": 4,
+        "total_spent": 1794.24,
+        "avg_order": 448.56,
+        "purchased_months": -40
+    }
 
     response = client.post("/predict", json=customer2)
     assert response.status_code == 422
 
+    result = response.json()
+    assert result['detail'][0]['loc'][1] == 'purchased_months'
+    assert result['detail'][0]['type'] == 'greater_than'
 
 
 def test_parity(client):
@@ -67,7 +77,7 @@ def test_parity(client):
             "recency": 10,
             "total_orders": 4,
             "total_spent": 1794.24,
-            "avg_order": 449.31,
+            "avg_order": 448.56,
             "purchased_months": 3
         }
 
@@ -82,7 +92,7 @@ def test_parity(client):
     result = response.json()
 
     assert result['label'] == label[0]
-    assert result['prob'] == pytest.approx(prob[0], abs=0.001)
+    assert result['prob'] == pytest.approx(prob[0], abs=0.000001)
 
 
 
