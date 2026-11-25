@@ -1,8 +1,9 @@
-from src.features import build_features, build_target
-from src.modeling import train, predict
-from sklearn.metrics import roc_auc_score
 import joblib
 import pandas as pd
+from sklearn.metrics import roc_auc_score
+
+from src.features import build_features, build_target
+from src.modeling import predict, train
 
 SNAPSHOTS = ["2011-06-01", "2011-07-01", "2011-08-01", 
              "2011-09-01", "2011-10-01", "2011-11-01"]
