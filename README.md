@@ -2,7 +2,7 @@
 
 A machine learning project that predicts whether a customer will buy something in the next 30 days, using only their past transactions.
 
-I built it to practice the full workflow on a real dataset: cleaning, features, a time-based split, model comparison, picking a threshold, and testing on a later period. The goal was to do it honestly, so this README includes what didn't work and where the model is weak.
+I built it to practice the full workflow on a real dataset: cleaning, features, a time-based split, model comparison, picking a threshold, and testing on a later period. The goal was to do it honestly, so this README includes what didn't work and where the model is weak. The trained model is also served through a small API (see [The API](#the-api)).
 
 ## The question
 
@@ -154,6 +154,9 @@ src/
   features.py   builds customer features and the target for a snapshot date
   modeling.py   FEATURES, THRESHOLD, create_model, train, predict
   train.py      runs the full pipeline and saves model.joblib
+  api.py        FastAPI app with /health and /predict
+tests/
+  test_api.py   tests for the API
 notebook/
   modeling.ipynb   exploration and model comparison
 data/
@@ -172,7 +175,7 @@ python -m src.train
 
 This builds the six snapshots, trains on June-August, prints the validation AUC (about 0.7335), and saves `model.joblib`.
 
-To use the saved model:
+To use the saved model directly:
 
 ```python
 import joblib
@@ -184,9 +187,74 @@ label, probability = predict(model, features_df)  # features_df from build_featu
 
 `model.joblib` only loads reliably with the same scikit-learn version it was created with, so the versions in `requirements.txt` are pinned.
 
+## The API
+
+The model is served with [FastAPI](https://fastapi.tiangolo.com/). Train the model first, because the API loads `model.joblib` once when it starts. Then, from the repo root:
+
+```
+uvicorn src.api:app --reload
+```
+
+Open http://127.0.0.1:8000/docs to try it in the browser.
+
+The API takes the five features already calculated for a customer. It does not take raw transactions: building the features (`build_features`) is a separate, offline step.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /health` | returns `{"status": "ok"}` |
+| `POST /predict` | takes one customer's features, returns the prediction |
+
+### Input
+
+| Field | Type | Rule |
+|---|---|---|
+| `recency` | integer | 0 or more |
+| `total_orders` | integer | greater than 0 |
+| `total_spent` | number | greater than 0 |
+| `avg_order` | number | greater than 0 |
+| `purchased_months` | integer | greater than 0 |
+
+Anything that breaks these rules (a missing field, a wrong type, a negative `recency`) gets a `422` response that says which field is wrong.
+
+### Example
+
+```python
+import httpx
+
+customer = {
+    "recency": 10,
+    "total_orders": 5,
+    "total_spent": 1794.24,
+    "avg_order": 358.85,
+    "purchased_months": 4,
+}
+
+response = httpx.post("http://127.0.0.1:8000/predict", json=customer)
+print(response.json())
+```
+
+Response:
+
+```json
+{"label": 1, "prob": 0.5079}
+```
+
+- `prob` is the model's probability that the customer buys in the next 30 days.
+- `label` is 1 when `prob` is at or above the threshold (0.2668), and 0 otherwise.
+
+## Tests
+
+The tests load the trained model, so run `python -m src.train` first. Then, from the repo root:
+
+```
+python -m pytest
+```
+
+They check that `/health` works, that a valid request returns a prediction, that invalid input returns a 422, that the API gives the same prediction as calling `predict` directly, and that the API's input fields match the `FEATURES` list the model was trained on.
+
 ## Next steps
 
-- Serve the model through an API (FastAPI) and put it in a Docker container.
+- Put the API in a Docker container.
 - Choose the threshold from campaign costs instead of F1.
 - Test on more months, and with rolling snapshots.
 - Try other features, like the time between orders or spending trends.
