@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
-from src import api, features
+from src import api
 from src.api import CustomerFeatures, app
 from src.modeling import FEATURES, predict
 
@@ -29,7 +29,7 @@ def test_missing_model(monkeypatch):
     new_path = Path("nonexistent_model.joblib")
     monkeypatch.setattr(api, "MODEL_PATH", new_path)
 
-    with pytest.raises(RuntimeError), TestClient(app):
+    with pytest.raises(RuntimeError, match="Model not found"), TestClient(app):
         pass
 
         
