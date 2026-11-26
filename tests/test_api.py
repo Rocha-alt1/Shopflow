@@ -29,9 +29,8 @@ def test_missing_model(monkeypatch):
     new_path = Path("nonexistent_model.joblib")
     monkeypatch.setattr(api, "MODEL_PATH", new_path)
 
-    with pytest.raises(RuntimeError):
-        with TestClient(app):
-            pass
+    with pytest.raises(RuntimeError), TestClient(app):
+        pass
 
         
 def test_predict(client):
