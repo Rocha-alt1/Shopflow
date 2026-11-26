@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
+from src import api, features
 from src.api import CustomerFeatures, app
 from src.modeling import FEATURES, predict
 
@@ -18,11 +19,21 @@ def client():
 
 
 def test_health(client):
+
     response = client.get("/health")
     assert response.status_code == 200
 
 
 
+def test_missing_model(monkeypatch):
+    new_path = Path("nonexistent_model.joblib")
+    monkeypatch.setattr(api, "MODEL_PATH", new_path)
+
+    with pytest.raises(RuntimeError):
+        with TestClient(app):
+            pass
+
+        
 def test_predict(client):
     customer = {
         "recency": 10,
@@ -35,8 +46,6 @@ def test_predict(client):
     response = client.post("/predict", json=customer)
 
     assert response.status_code == 200
-
-
 
 def test_predict_missing(client):
     customer1 = {
