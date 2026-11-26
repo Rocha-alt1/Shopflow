@@ -12,13 +12,10 @@ MODEL_PATH = Path(__file__).resolve().parent.parent / "model.joblib"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    #if not MODEL_PATH.exists():
-            #raise RuntimeError("Model not found. Train the model with: python -m src.train")
     try:     
         app.state.model = joblib.load(MODEL_PATH)
     except FileNotFoundError:
         raise RuntimeError("Model not found. Train the model with: python -m src.train")
-
     yield
     del app.state.model
 
